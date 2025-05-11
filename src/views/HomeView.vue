@@ -56,30 +56,34 @@ const colorMap: Record<string, string> = {
     "4": "Purple",
     "5": "Black",
     "6": "Yellow",
-    "7": "Green",
-    "10": "Red"
+    "7": "Green",   // Special code used in multi-color
+    "10": "Red"     // Another special code
 };
+
 
 const reverseColorMap: Record<string, string[]> = {
-    "Red": ["1", "10"],
-    "Green": ["2", "7"],
-    "Blue": ["3"],
-    "Purple": ["4"],
-    "Black": ["5"],
-    "Yellow": ["6"]
+    Red: ["1", "10"],
+    Green: ["2", "7"],
+    Blue: ["3"],
+    Purple: ["4"],
+    Black: ["5"],
+    Yellow: ["6"]
 };
 
 
 
-function mapColor(code: string): string[] {
-    return code?.split(/\s+/).map(c => colorMap[c] || `Unknown (${c})`) || [];
+
+function mapColor(code: string | null): string[] {
+    return (code ?? "")
+        .trim()
+        .split(/\s+/)
+        .map(c => colorMap[c] || `Unknown (${c})`);
 }
 
 
 const filteredCards = computed(() =>
     cards.value.filter(card => {
-        const cardColorCodes = card.col.split(/\s+/); // e.g. ['1', '3']
-
+        const cardColorCodes = card.col?.split(/\s+/) ?? [];
         const selectedColorCodes = selectedColors.value
             .flatMap(label => reverseColorMap[label] || []);
 
@@ -93,6 +97,7 @@ const filteredCards = computed(() =>
         return matchesColor && matchesType;
     })
 );
+
 
 
 
