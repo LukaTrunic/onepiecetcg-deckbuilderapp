@@ -50,24 +50,42 @@ const typeMap: Record<string, string> = {
 };
 
 const colorMap: Record<string, string> = {
-    '1': 'Red',
-    '2': 'Green',
-    '3': 'Blue',
-    '4': 'Purple',
-    '5': 'Black',
-    '6': 'Yellow'
+    "1": "Red",
+    "2": "Green",
+    "3": "Blue",
+    "4": "Purple",
+    "5": "Black",
+    "6": "Yellow",
+    "7": "Green",
+    "10": "Red"
 };
 
+const reverseColorMap: Record<string, string[]> = {
+    "Red": ["1", "10"],
+    "Green": ["2", "7"],
+    "Blue": ["3"],
+    "Purple": ["4"],
+    "Black": ["5"],
+    "Yellow": ["6"]
+};
+
+
+
 function mapColor(code: string): string[] {
-    return code?.split(/\s+/).map(c => colorMap[c] || c) || [];
+    return code?.split(/\s+/).map(c => colorMap[c] || `Unknown (${c})`) || [];
 }
+
 
 const filteredCards = computed(() =>
     cards.value.filter(card => {
-        const cardColors = mapColor(card.col);
+        const cardColorCodes = card.col.split(/\s+/); // e.g. ['1', '3']
+
+        const selectedColorCodes = selectedColors.value
+            .flatMap(label => reverseColorMap[label] || []);
+
         const matchesColor =
             selectedColors.value.length === 0 ||
-            cardColors.some(c => selectedColors.value.includes(c));
+            cardColorCodes.some(code => selectedColorCodes.includes(code));
 
         const matchesType =
             selectedType.value === '' || card.t === selectedType.value;
@@ -75,6 +93,8 @@ const filteredCards = computed(() =>
         return matchesColor && matchesType;
     })
 );
+
+
 
 onMounted(async () => {
     cards.value = await getAllCards();

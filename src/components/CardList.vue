@@ -27,17 +27,21 @@ const typeMap: Record<string, string> = {
 };
 
 const colorMap: Record<string, string> = {
-    '1': 'Red',
-    '2': 'Green',
-    '3': 'Blue',
-    '4': 'Purple',
-    '5': 'Black',
-    '6': 'Yellow'
+    "1": "Red",
+    "2": "Green",
+    "3": "Blue",
+    "4": "Purple",
+    "5": "Black",
+    "6": "Yellow",
+    "7": "Green",
+    "10": "Red"
 };
+
 
 function mapColor(code: string): string[] {
     return code?.split(/\s+/).map(c => colorMap[c] || c) || [];
 }
+
 </script>
 
 <style scoped>
