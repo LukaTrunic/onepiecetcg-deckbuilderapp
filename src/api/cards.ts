@@ -1,15 +1,7 @@
 // src/api/cards.ts
-import axios from 'axios'
-import type { Card } from '@/types/Card'
+import type { OnePieceCard } from '@/types/Card'
+import cards from '@/data/cards.json'
 
-const API_BASE = 'https://optcgapi.com'
-
-export async function getAllSets() {
-  const res = await axios.get(`${API_BASE}/api/allSets/`)
-  return res.data
-}
-
-export async function getCardsFromSet(setId: string): Promise<Card[]> {
-  const res = await axios.get(`${API_BASE}/api/sets/${setId}/`)
-  return res.data
+export async function getAllCards(): Promise<OnePieceCard[]> {
+  return cards
 }

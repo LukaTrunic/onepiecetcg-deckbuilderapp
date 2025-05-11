@@ -2,41 +2,26 @@
     <main>
         <h1>My One Piece Cards</h1>
 
-        <!-- SET DROPDOWN -->
-        <label for="set-select">Select a Set:</label>
-        <select id="set-select" v-model="selectedSetId" @change="fetchCards">
-            <option disabled value="">-- Choose a set --</option>
-            <option v-for="set in sets" :key="set.set_id" :value="set.set_id">
-                {{ set.set_name }}
-            </option>
-        </select>
-
-        <!-- FILTERS -->
         <div class="filters">
-            <div>
-                <label>Filter by Color:</label>
-                <div class="checkbox-group">
-                    <label v-for="color in availableColors" :key="color">
-                        <input type="checkbox" :value="color" v-model="selectedColors" />
-                        {{ color }}
-                    </label>
-                </div>
+            <label>Filter by Color:</label>
+            <div class="checkbox-group">
+                <label v-for="color in availableColors" :key="color">
+                    <input type="checkbox" :value="color" v-model="selectedColors" />
+                    {{ color }}
+                </label>
             </div>
-
-
 
             <label>
                 Filter by Type:
                 <select v-model="selectedType">
                     <option value="">All</option>
-                    <option v-for="type in availableTypes" :key="type" :value="type">
-                        {{ type }}
+                    <option v-for="(label, key) in typeMap" :key="key" :value="key">
+                        {{ label }}
                     </option>
                 </select>
             </label>
         </div>
 
-        <!-- CARD LIST -->
         <div v-if="loading">Loading cards...</div>
         <CardList v-else :cards="filteredCards" />
     </main>
@@ -44,74 +29,68 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { getAllSets, getCardsFromSet } from '@/api/cards';
-import type { Card, CardType } from '@/types/Card';
+import { getAllCards } from '@/api/cards';
+import type { OnePieceCard } from '@/types/Card';
 import CardList from '@/components/CardList.vue';
 
-const sets = ref<{ set_id: string; set_name: string }[]>([]);
-const selectedSetId = ref('');
-const cards = ref<Card[]>([]);
-const loading = ref(false);
+const cards = ref<OnePieceCard[]>([]);
+const loading = ref(true);
 
-const selectedColor = ref('');
 const selectedColors = ref<string[]>([]);
-const selectedType = ref<CardType | ''>('');
+const selectedType = ref<string>('');
 
-// Available filter options
-const availableColors = ['Red', 'Blue', 'Green', 'Purple', 'Black', 'Yellow'];
-const availableTypes: CardType[] = ['Character', 'Event', 'Stage', 'Leader'];
+// UI labels for filters
+const availableColors = ['Red', 'Green', 'Blue', 'Purple', 'Black', 'Yellow'];
 
-// Filtered cards based on dropdowns
+const typeMap: Record<string, string> = {
+    '1': 'Leader',
+    '2': 'Character',
+    '3': 'Event',
+    '4': 'Stage'
+};
+
+const colorMap: Record<string, string> = {
+    '1': 'Red',
+    '2': 'Green',
+    '3': 'Blue',
+    '4': 'Purple',
+    '5': 'Black',
+    '6': 'Yellow'
+};
+
+function mapColor(code: string): string[] {
+    return code?.split(/\s+/).map(c => colorMap[c] || c) || [];
+}
+
 const filteredCards = computed(() =>
     cards.value.filter(card => {
-        const cardColors = card.card_color?.split(' ') || [];
+        const cardColors = mapColor(card.col);
         const matchesColor =
             selectedColors.value.length === 0 ||
             cardColors.some(c => selectedColors.value.includes(c));
 
         const matchesType =
-            selectedType.value === '' || card.card_type === selectedType.value;
+            selectedType.value === '' || card.t === selectedType.value;
 
         return matchesColor && matchesType;
     })
 );
 
-
-// Load cards from API
-async function fetchCards() {
-    if (!selectedSetId.value) return;
-    loading.value = true;
-    cards.value = await getCardsFromSet(selectedSetId.value);
-    loading.value = false;
-}
-
-// Initial load
 onMounted(async () => {
-    sets.value = await getAllSets();
-    selectedSetId.value = sets.value[0]?.set_id ?? '';
-    await fetchCards();
+    cards.value = await getAllCards();
+    loading.value = false;
 });
 </script>
 
 <style scoped>
-select {
-    margin: 0.5rem;
-    padding: 0.5rem;
-    font-size: 1rem;
-}
-
 .filters {
     margin: 1rem 0;
 }
 
-.select[multiple] {
-    height: auto;
-    max-height: 120px;
-    width: 180px;
-    padding: 0.5rem;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    overflow-y: auto;
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
 }
 </style>
